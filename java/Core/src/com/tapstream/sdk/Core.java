@@ -29,19 +29,32 @@ class Core {
 	private int delay = 0;
 
 	Core(Delegate delegate, Platform platform, CoreListener listener, String accountName, String developerSecret, Config config) {
-		this.delegate = delegate;
-		this.platform = platform;
-		this.listener = listener;
-		this.config = config;
-
-		this.accountName = clean(accountName);
-		makePostArgs(developerSecret);
-
-		firedEvents = platform.loadFiredEvents();
-
-		executor = new ScheduledThreadPoolExecutor(MAX_THREADS, platform.makeWorkerThreadFactory());
-		executor.prestartAllCoreThreads();		
+        this(delegate, platform, listener, accountName, developerSecret, config, null);
 	}
+
+    Core(Delegate delegate, Platform platform, CoreListener listener, String accountName, String developerSecret, Config config, ScheduledThreadPoolExecutor executor) {
+
+        this.delegate = delegate;
+        this.platform = platform;
+        this.listener = listener;
+        this.config = config;
+
+        this.accountName = clean(accountName);
+        makePostArgs(developerSecret);
+
+        firedEvents = platform.loadFiredEvents();
+
+        if (executor == null) {
+            createDefaultExecutor();
+        }
+
+    }
+
+    protected ScheduledThreadPoolExecutor createDefaultExecutor() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(MAX_THREADS, platform.makeWorkerThreadFactory());
+        executor.prestartAllCoreThreads();
+        return executor;
+    }
 
 	public void start() {
 		// Automatically fire run event
